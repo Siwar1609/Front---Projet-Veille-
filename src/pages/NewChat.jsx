@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiSend, FiAlertCircle, FiCheckCircle, FiInfo, FiTrash2 } from 'react-icons/fi';
+import { fetchLLMResponse } from '../services/api'
 
 const NewChat = () => {
   const [messages, setMessages] = useState([]);
@@ -8,27 +9,6 @@ const NewChat = () => {
   const [analysis, setAnalysis] = useState(null);
   const [lastResponse, setLastResponse] = useState('');
   const messagesEndRef = useRef(null);
-
-  const fetchLLMResponse = async (question) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('http://127.0.0.1:5000/api/prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: question }),
-      });
-      const data = await res.json();
-      console.log(data)
-      console.log(res)
-
-      return data.response;
-    } catch (err) {
-      console.error("Erreur de communication avec l'API:", err);
-      return "Désolé, une erreur est survenue lors de la récupération de la réponse. Veuillez réessayer.";
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const analyzeBias = (text) => {
     const detectedBiases = [];
@@ -82,6 +62,7 @@ const NewChat = () => {
     setInput('');
 
     try {
+      setIsLoading(true);
       const response = await fetchLLMResponse(input);
       const llmMessage = { text: response, sender: 'llm' };
       setMessages(prev => [...prev, llmMessage]);
@@ -90,6 +71,8 @@ const NewChat = () => {
     } catch (error) {
       const errorMessage = { text: "Erreur lors de la génération de la réponse.", sender: 'llm' };
       setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
