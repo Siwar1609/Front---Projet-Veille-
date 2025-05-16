@@ -5,6 +5,7 @@ import NewChat from './pages/NewChat';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import About from './pages/About';
+import Dashboard from './components/Dashboard';
 
 // Création d'un contexte pour partager l'état
 export const AppContext = React.createContext();
@@ -71,6 +72,8 @@ function App() {
                 <Route path="/history" element={<History />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+
               </Routes>
             </div>
           </div>
