@@ -1,12 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-import { Chart, BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement } from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
-import { Bar } from 'react-chartjs-2';
+import { FiAlertCircle, FiCheckCircle, FiInfo } from 'react-icons/fi';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import { Chart, BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement, Legend } from 'chart.js';
 
 // Register Chart.js components
-Chart.register(BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement);
+Chart.register(BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement, Legend);
 
 const Dashboard = () => {
   const location = useLocation();
@@ -15,11 +14,17 @@ const Dashboard = () => {
   // If no data is passed, show a message
   if (!analysisData || analysisData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <h2 className="text-2xl font-bold mb-4">Aucune donnée d'analyse disponible</h2>
-        <p className="text-gray-600">
-          Veuillez effectuer une analyse depuis la page de chat pour voir les résultats.
-        </p>
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md">
+          <FiInfo className="mx-auto text-4xl text-blue-500 mb-4" />
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Aucune donnée disponible</h2>
+          <p className="text-gray-600 mb-6">
+            Veuillez effectuer une analyse depuis la page de chat pour voir les résultats.
+          </p>
+          <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
+            Retour à l'analyse
+          </button>
+        </div>
       </div>
     );
   }
@@ -38,12 +43,14 @@ const Dashboard = () => {
         bias.severity === "high" ? '#ef4444' : 
         bias.severity === "medium" ? '#f59e0b' : '#3b82f6'
       ),
-      borderWidth: 1,
+      borderWidth: 0,
+      borderRadius: 6,
     }]
   };
 
   const biasChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false
@@ -53,16 +60,54 @@ const Dashboard = () => {
           label: function(context) {
             return `${context.parsed.y}%`;
           }
-        }
+        },
+        displayColors: false,
+        backgroundColor: '#1f2937',
+        titleFont: {
+          size: 14,
+          weight: 'bold'
+        },
+        bodyFont: {
+          size: 12
+        },
+        padding: 12,
+        cornerRadius: 8
       }
     },
     scales: {
       y: {
         beginAtZero: true,
         max: 100,
+        grid: {
+          color: '#e5e7eb',
+          drawBorder: false
+        },
+        ticks: {
+          color: '#6b7280',
+          font: {
+            weight: '500'
+          }
+        },
         title: {
           display: true,
-          text: 'Score (%)'
+          text: 'Score (%)',
+          color: '#6b7280',
+          font: {
+            size: 12,
+            weight: '600'
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false
+        },
+        ticks: {
+          color: '#6b7280',
+          font: {
+            weight: '500'
+          }
         }
       }
     }
@@ -91,7 +136,8 @@ const Dashboard = () => {
 
   const sentimentOptions = {
     responsive: true,
-    cutout: '70%',
+    maintainAspectRatio: false,
+    cutout: '75%',
     plugins: {
       legend: {
         display: false
@@ -102,81 +148,275 @@ const Dashboard = () => {
     }
   };
 
+  // Calculate overall bias score
+  const overallBiasScore = biases.length > 0 
+    ? biases.reduce((sum, bias) => sum + parseFloat(bias.description.match(/\d+/)[0]), 0) / biases.length
+    : 0;
+
+  // Severity counts
+  const severityCounts = {
+    high: biases.filter(b => b.severity === 'high').length,
+    medium: biases.filter(b => b.severity === 'medium').length,
+    low: biases.filter(b => b.severity === 'low').length
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Tableau de bord des biais</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Bias Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-center">Répartition des biais détectés</h2>
-          <div className="h-80">
-            <Bar data={biasChartData} options={biasChartOptions} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Analyse des Biais</h1>
+            <p className="text-gray-600 mt-2">Résultats détaillés de l'analyse de votre contenu</p>
+          </div>
+          <div className="mt-4 md:mt-0 bg-white px-4 py-2 rounded-full shadow-sm flex items-center">
+            <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+            <span className="text-sm font-medium text-gray-700">Dernière analyse: {new Date().toLocaleDateString()}</span>
           </div>
         </div>
 
-        {/* Sentiment Chart (if available) */}
-        {sentiment && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-center">Analyse de sentiment</h2>
-            <div className="relative h-80">
-              <Doughnut data={sentimentData} options={sentimentOptions} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold" style={{
-                  color: sentiment.description.includes("Positive") 
-                    ? '#10b981' 
-                    : sentiment.description.includes("Negative") 
-                      ? '#ef4444' 
-                      : '#f59e0b'
-                }}>
-                  {sentiment.description.split('(')[0].trim()}
-                </span>
-                <span className="text-gray-600">
-                  {parseFloat(sentiment.description.match(/\d+/)[0])}% de confiance
-                </span>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Score Global</p>
+                <h3 className="text-3xl font-bold text-gray-800 mt-1">{Math.round(overallBiasScore)}%</h3>
+              </div>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <FiInfo className="text-blue-500" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full" 
+                  style={{ width: `${overallBiasScore}%` }}
+                ></div>
               </div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Bias Details */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Détails des biais détectés</h2>
-        {biases.length > 0 ? (
-          <div className="space-y-4">
-            {biases.map((bias, index) => (
-              <div
-                key={`bias-${index}`}
-                className={`p-4 rounded-lg border-l-4 ${
-                  bias.severity === "high"
-                    ? "bg-red-50 border-red-400"
-                    : bias.severity === "medium"
-                    ? "bg-yellow-50 border-yellow-400"
-                    : "bg-blue-50 border-blue-400"
-                }`}
-              >
-                <div className="flex items-start">
-                  <FiAlertCircle
-                    className={`mt-1 flex-shrink-0 ${
-                      bias.severity === "high"
-                        ? "text-red-500"
-                        : bias.severity === "medium"
-                        ? "text-yellow-500"
-                        : "text-blue-500"
-                    }`}
-                  />
-                  <div className="ml-3">
-                    <h3 className="font-medium text-lg">{bias.type}</h3>
-                    <p className="text-gray-600">{bias.description}</p>
-                  </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-purple-500">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Biais Détectés</p>
+                <h3 className="text-3xl font-bold text-gray-800 mt-1">{biases.length}</h3>
+              </div>
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <FiAlertCircle className="text-purple-500" />
+              </div>
+            </div>
+            <div className="mt-4 flex space-x-2">
+              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                {severityCounts.high} Haut
+              </span>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+                {severityCounts.medium} Moyen
+              </span>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                {severityCounts.low} Faible
+              </span>
+            </div>
+          </div>
+
+          {sentiment && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-green-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Sentiment</p>
+                  <h3 className="text-3xl font-bold text-gray-800 mt-1">
+                    {sentiment.description.includes("Positive") ? "Positif" : 
+                     sentiment.description.includes("Negative") ? "Négatif" : "Neutre"}
+                  </h3>
+                </div>
+                <div className={`p-2 rounded-lg ${
+                  sentiment.description.includes("Positive") ? "bg-green-100" : 
+                  sentiment.description.includes("Negative") ? "bg-red-100" : "bg-yellow-100"
+                }`}>
+                  <FiCheckCircle className={
+                    sentiment.description.includes("Positive") ? "text-green-500" : 
+                    sentiment.description.includes("Negative") ? "text-red-500" : "text-yellow-500"
+                  } />
                 </div>
               </div>
-            ))}
+              <div className="mt-4">
+                <p className="text-sm text-gray-600">
+                  Confiance: {parseFloat(sentiment.description.match(/\d+/)[0])}%
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Bias Chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-800">Répartition des Biais</h2>
+              <select className="bg-gray-100 border-0 text-sm rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500">
+                <option>Score</option>
+                <option>Fréquence</option>
+                <option>Sévérité</option>
+              </select>
+            </div>
+            <div className="h-80">
+              <Bar data={biasChartData} options={biasChartOptions} />
+            </div>
           </div>
-        ) : (
-          <p className="text-gray-500">Aucun biais significatif détecté</p>
-        )}
+
+          {/* Sentiment Chart */}
+          {sentiment && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm">
+              <h2 className="text-xl font-bold text-gray-800 mb-6">Analyse de Sentiment</h2>
+              <div className="relative h-80">
+                <Doughnut data={sentimentData} options={sentimentOptions} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold" style={{
+                    color: sentiment.description.includes("Positive") 
+                      ? '#10b981' 
+                      : sentiment.description.includes("Negative") 
+                        ? '#ef4444' 
+                        : '#f59e0b'
+                  }}>
+                    {sentiment.description.split('(')[0].trim()}
+                  </span>
+                  <span className="text-gray-600 text-sm mt-1">
+                    {parseFloat(sentiment.description.match(/\d+/)[0])}% de confiance
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bias Details */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Détails des Biais</h2>
+            <button className="text-sm font-medium text-blue-500 hover:text-blue-700">
+              Exporter le rapport
+            </button>
+          </div>
+
+          {biases.length > 0 ? (
+            <div className="space-y-4">
+              {biases.map((bias, index) => (
+                <div
+                  key={`bias-${index}`}
+                  className={`p-5 rounded-xl transition-all duration-300 hover:shadow-md ${
+                    bias.severity === "high"
+                      ? "bg-gradient-to-r from-red-50 to-white border-l-4 border-red-500"
+                      : bias.severity === "medium"
+                      ? "bg-gradient-to-r from-yellow-50 to-white border-l-4 border-yellow-500"
+                      : "bg-gradient-to-r from-blue-50 to-white border-l-4 border-blue-500"
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <div className={`p-2 rounded-lg mr-4 ${
+                      bias.severity === "high"
+                        ? "bg-red-100 text-red-500"
+                        : bias.severity === "medium"
+                        ? "bg-yellow-100 text-yellow-500"
+                        : "bg-blue-100 text-blue-500"
+                    }`}>
+                      <FiAlertCircle className="text-lg" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-lg text-gray-800">{bias.type}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          bias.severity === "high"
+                            ? "bg-red-100 text-red-800"
+                            : bias.severity === "medium"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}>
+                          {bias.severity === "high" ? "Élevé" : 
+                           bias.severity === "medium" ? "Moyen" : "Faible"}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mt-1">{bias.description}</p>
+                      <div className="mt-3 flex items-center">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                          <div 
+                            className="h-2 rounded-full" 
+                            style={{
+                              width: `${parseFloat(bias.description.match(/\d+/)[0])}%`,
+                              backgroundColor: bias.severity === "high" ? '#ef4444' : 
+                                            bias.severity === "medium" ? '#f59e0b' : '#3b82f6'
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-500">
+                          {parseFloat(bias.description.match(/\d+/)[0])}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <FiCheckCircle className="mx-auto text-4xl text-green-500 mb-4" />
+              <h3 className="text-xl font-medium text-gray-800">Aucun biais significatif détecté</h3>
+              <p className="text-gray-600 mt-1">Votre contenu semble équilibré et objectif</p>
+            </div>
+          )}
+        </div>
+
+        {/* Recommendations */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Recommandations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+              <h3 className="font-bold text-blue-800 mb-3 flex items-center">
+                <span className="bg-blue-100 p-1 rounded-lg mr-3">
+                  <FiInfo className="text-blue-500" />
+                </span>
+                Pour réduire les biais
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">•</span>
+                  Utilisez des sources diversifiées et vérifiables
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">•</span>
+                  Évitez les généralisations excessives
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">•</span>
+                  Présentez plusieurs perspectives sur le sujet
+                </li>
+              </ul>
+            </div>
+            <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+              <h3 className="font-bold text-purple-800 mb-3 flex items-center">
+                <span className="bg-purple-100 p-1 rounded-lg mr-3">
+                  <FiAlertCircle className="text-purple-500" />
+                </span>
+                Prochaines étapes
+              </h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start">
+                  <span className="text-purple-500 mr-2">•</span>
+                  Revoyez les biais marqués comme "Élevé" en priorité
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-500 mr-2">•</span>
+                  Consultez notre guide des biais cognitifs
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-500 mr-2">•</span>
+                  Réanalysez après modifications
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
