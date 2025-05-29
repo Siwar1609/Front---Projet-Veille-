@@ -45,7 +45,7 @@ const About = () => {
             <div className="ml-4">
               <h2 className="text-2xl font-bold text-gray-900">Notre mission</h2>
               <p className="mt-2 text-gray-600">
-                Your Bias Analyzer a été créé pour aider les individus et organisations à prendre conscience 
+                La solution Analyse des biais a été créé pour aider les individus et organisations à prendre conscience 
                 des biais cognitifs qui influencent leurs décisions et conversations. 
                 Notre technologie analyse en temps réel les échanges pour identifier les schémas de pensée biaisés.
               </p>

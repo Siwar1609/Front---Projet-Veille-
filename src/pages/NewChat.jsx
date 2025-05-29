@@ -149,7 +149,7 @@ const NewChat = () => {
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-gray-50">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          Your way to detect bias
+          Votre outil pour identifier les biais
         </h2>
         {messages.length > 0 && (
           <button

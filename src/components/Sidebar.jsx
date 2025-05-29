@@ -6,10 +6,10 @@ const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { icon: <FiHome className="mr-3" />, name: "New Chat", path: "/new-chat" },
-    { icon: <FiClock className="mr-3" />, name: "History", path: "/history" },
-    { icon: <FiSettings className="mr-3" />, name: "Settings", path: "/settings" },
-    { icon: <FiInfo className="mr-3" />, name: "About", path: "/about" },
+    { icon: <FiHome className="mr-3" />, name: "Nouvelle conversation", path: "/new-chat" },
+    { icon: <FiClock className="mr-3" />, name: "Historique", path: "/history" },
+    { icon: <FiSettings className="mr-3" />, name: "Pramétres", path: "/settings" },
+    { icon: <FiInfo className="mr-3" />, name: "A propos", path: "/about" },
   ];
 
   return (
@@ -20,7 +20,7 @@ const Sidebar = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold">Bias Analysis</h2>
+        <h2 className="text-xl font-bold">Your Bias Analyzer</h2>
       </div>
       
       <nav>

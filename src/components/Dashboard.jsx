@@ -255,11 +255,7 @@ const Dashboard = () => {
           <div className="bg-white p-6 rounded-2xl shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">Répartition des Biais</h2>
-              <select className="bg-gray-100 border-0 text-sm rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500">
-                <option>Score</option>
-                <option>Fréquence</option>
-                <option>Sévérité</option>
-              </select>
+              
             </div>
             <div className="h-80">
               <Bar data={biasChartData} options={biasChartOptions} />
