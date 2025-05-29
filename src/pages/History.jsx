@@ -18,7 +18,20 @@ const History = () => {
       const response = await fetch('http://localhost:8000/prompts/');
       if (!response.ok) throw new Error('Erreur de chargement');
       const data = await response.json();
-      setApiPrompts(data);
+      
+      // Nettoyage et filtrage des données
+      const cleanedPrompts = data
+        .map(prompt => ({
+          ...prompt,
+          prompt_text: prompt.prompt_text?.trim() || '',
+          response_text: prompt.response_text?.trim() || ''
+        }))
+        .filter(prompt => prompt.response_text && prompt.response_text.length > 0); // Filtre les prompts sans réponse
+
+      const sortedPrompts = cleanedPrompts.sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at));
+      
+      setApiPrompts(sortedPrompts);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -34,7 +47,6 @@ const History = () => {
       
       if (!response.ok) throw new Error('Échec de la suppression');
       
-      // Rafraîchir la liste après suppression
       fetchPrompts();
     } catch (err) {
       console.error("Erreur lors de la suppression:", err);
@@ -45,7 +57,6 @@ const History = () => {
   const parseAnalysisData = (data) => {
     if (!data) return null;
     
-    // Si déjà un objet, retourner directement
     if (typeof data === 'object') return data;
     
     try {
@@ -86,8 +97,8 @@ const History = () => {
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">Historique des analyses</h2>
-            <p className="mt-1 text-sm text-gray-500">Tous vos prompts et analyses de biais</p>
+            <h2 className="text-xl font-semibold text-gray-800">Historique des prompts et réponses</h2>
+            <p className="mt-1 text-sm text-gray-500">Tous vos prompts avec réponses</p>
           </div>
         </div>
 
@@ -96,7 +107,7 @@ const History = () => {
             <li className="px-6 py-12 text-center">
               <FiMessageSquare className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun historique</h3>
-              <p className="mt-1 text-sm text-gray-500">Vos analyses apparaîtront ici.</p>
+              <p className="mt-1 text-sm text-gray-500">Vos prompts avec réponses apparaîtront ici.</p>
             </li>
           ) : (
             apiPrompts.map((prompt) => {
@@ -111,18 +122,31 @@ const History = () => {
                       className="flex-1 cursor-pointer"
                       onClick={() => toggleExpand(prompt.id)}
                     >
-                      <div className="flex items-center">
-                        <FiClock className="mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-500">{formatDate(prompt.created_at)}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FiClock className="mr-2 text-gray-400" />
+                          <span className="text-sm text-gray-500">{formatDate(prompt.created_at)}</span>
+                        </div>
+                        <button className="text-gray-400 hover:text-gray-600">
+                          {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
+                        </button>
                       </div>
-                      <div className="mt-2">
-                        <h4 className="font-medium text-gray-700">Prompt</h4>
-                        <p className="text-gray-800 mt-1">{prompt.prompt_text?.slice(0, 100)}{prompt.prompt_text?.length > 100 ? '...' : ''}</p>
-                      </div>
+                      
+                      {!isExpanded && (
+                        <div className="mt-2">
+                          <h4 className="font-medium text-gray-700">Prompt</h4>
+                          <p className="text-gray-800 mt-1 line-clamp-2">
+                            {prompt.prompt_text || "Aucun texte de prompt"}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <button
-                      onClick={() => deletePrompt(prompt.id)}
-                      className="text-red-500 hover:text-red-700 p-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletePrompt(prompt.id);
+                      }}
+                      className="text-red-500 hover:text-red-700 p-2 ml-4"
                       title="Supprimer cette entrée"
                     >
                       <FiTrash2 />
@@ -131,18 +155,22 @@ const History = () => {
 
                   {isExpanded && (
                     <div className="mt-4 space-y-4 pl-2 border-l-2 border-gray-200">
-                      {prompt.response_text && (
-                        <div>
-                          <h4 className="font-medium text-gray-700">Réponse complète</h4>
-                          <div className="bg-blue-50 p-3 rounded text-gray-800 mt-1 whitespace-pre-wrap">
-                            {prompt.response_text}
-                          </div>
-                        </div>
-                      )}
+                      <div>
+                        <h4 className="font-medium text-gray-700">Prompt</h4>
+                        <p className="text-gray-800 mt-1 whitespace-pre-wrap">
+                          {prompt.prompt_text || "Aucun texte de prompt"}
+                        </p>
+                      </div>
 
-                      {/* Analyse des biais - version améliorée */}
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-700">Réponse</h4>
+                        <div className="bg-blue-50 p-3 rounded text-gray-800 mt-1 whitespace-pre-wrap">
+                          {prompt.response_text}
+                        </div>
+                      </div>
+
                       {biases && (
-                        <div>
+                        <div className="mt-4">
                           <h4 className="font-medium text-gray-700">Analyse des biais</h4>
                           {Array.isArray(biases) ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
@@ -175,9 +203,8 @@ const History = () => {
                         </div>
                       )}
 
-                      {/* Analyse de sentiment - version améliorée */}
                       {sentiment && (
-                        <div>
+                        <div className="mt-4">
                           <h4 className="font-medium text-gray-700">Analyse de sentiment</h4>
                           <div className="bg-gray-50 p-3 rounded-md mt-1">
                             {sentiment.sentiment && sentiment.confidence_percentage ? (

@@ -363,56 +363,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Recommendations */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Recommandations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-              <h3 className="font-bold text-blue-800 mb-3 flex items-center">
-                <span className="bg-blue-100 p-1 rounded-lg mr-3">
-                  <FiInfo className="text-blue-500" />
-                </span>
-                Pour réduire les biais
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  Utilisez des sources diversifiées et vérifiables
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  Évitez les généralisations excessives
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-500 mr-2">•</span>
-                  Présentez plusieurs perspectives sur le sujet
-                </li>
-              </ul>
-            </div>
-            <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
-              <h3 className="font-bold text-purple-800 mb-3 flex items-center">
-                <span className="bg-purple-100 p-1 rounded-lg mr-3">
-                  <FiAlertCircle className="text-purple-500" />
-                </span>
-                Prochaines étapes
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-purple-500 mr-2">•</span>
-                  Revoyez les biais marqués comme "Élevé" en priorité
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-500 mr-2">•</span>
-                  Consultez notre guide des biais cognitifs
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-500 mr-2">•</span>
-                  Réanalysez après modifications
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
