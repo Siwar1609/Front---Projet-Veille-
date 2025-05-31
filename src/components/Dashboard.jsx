@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FiAlertCircle, FiCheckCircle, FiInfo } from 'react-icons/fi';
+import { FiAlertCircle, FiCheckCircle, FiInfo, FiDownload, FiCheck } from 'react-icons/fi';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart, BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement, Legend } from 'chart.js';
+import ReportPDF from './ReportPDF';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 // Register Chart.js components
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, Tooltip, ArcElement, Legend);
@@ -10,6 +12,15 @@ Chart.register(BarController, CategoryScale, LinearScale, BarElement, Tooltip, A
 const Dashboard = () => {
   const location = useLocation();
   const analysisData = location.state?.analysisData || [];
+  const [exportStatus, setExportStatus] = useState('idle'); // 'idle' | 'generating' | 'success'
+
+  // Reset status after successful export
+  useEffect(() => {
+    if (exportStatus === 'success') {
+      const timer = setTimeout(() => setExportStatus('idle'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [exportStatus]);
 
   // If no data is passed, show a message
   if (!analysisData || analysisData.length === 0) {
@@ -160,6 +171,36 @@ const Dashboard = () => {
     low: biases.filter(b => b.severity === 'low').length
   };
 
+  // Get button content based on export status
+  const getExportButtonContent = () => {
+    switch (exportStatus) {
+      case 'generating':
+        return (
+          <>
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Génération en cours...
+          </>
+        );
+      case 'success':
+        return (
+          <>
+            <FiCheck className="mr-2" />
+            PDF généré !
+          </>
+        );
+      default:
+        return (
+          <>
+            <FiDownload className="mr-2" />
+            Exporter le rapport
+          </>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -255,7 +296,6 @@ const Dashboard = () => {
           <div className="bg-white p-6 rounded-2xl shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">Répartition des Biais</h2>
-              
             </div>
             <div className="h-80">
               <Bar data={biasChartData} options={biasChartOptions} />
@@ -291,9 +331,27 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-2xl shadow-sm mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Détails des Biais</h2>
-            <button className="text-sm font-medium text-blue-500 hover:text-blue-700">
-              Exporter le rapport
-            </button>
+            <PDFDownloadLink
+              document={<ReportPDF analysisData={analysisData} />}
+              fileName={`rapport-analyse-${new Date().toISOString().slice(0, 10)}.pdf`}
+              className={`flex items-center px-4 py-2 rounded transition-colors ${
+                exportStatus === 'success' 
+                  ? 'bg-green-500 hover:bg-green-600' 
+                  : 'bg-blue-500 hover:bg-blue-600'
+              } text-white font-medium`}
+            >
+              {({ loading }) => {
+                useEffect(() => {
+                  if (loading) {
+                    setExportStatus('generating');
+                  } else if (exportStatus === 'generating') {
+                    setExportStatus('success');
+                  }
+                }, [loading]);
+
+                return getExportButtonContent();
+              }}
+            </PDFDownloadLink>
           </div>
 
           {biases.length > 0 ? (
@@ -362,8 +420,6 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-
-        
       </div>
     </div>
   );

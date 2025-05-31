@@ -5,5 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 
 export default defineConfig({
-  plugins: [tailwindcss(),react()],
+  plugins: [tailwindcss(),react(),],optimizeDeps: {
+    include: [
+      '@react-pdf/renderer',
+      // Ajoutez d'autres dépendances si nécessaire
+    ],
+    exclude: ['@react-pdf/renderer'] // Important pour éviter les conflits
+  }
 })
