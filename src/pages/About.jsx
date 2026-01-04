@@ -29,10 +29,10 @@ const About = () => {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-          À propos de <span className="text-blue-600"> Your Bias Analyzer</span>
+          À propos de <span className="text-blue-600"> ISO 5055 Chat</span>
         </h1>
         <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-          Votre compagnon pour des discussions plus objectives et conscientes
+          Votre compagnon pour des discussions et explications de ISO 5055
         </p>
       </div>
 
@@ -45,10 +45,7 @@ const About = () => {
             <div className="ml-4">
               <h2 className="text-2xl font-bold text-gray-900">Notre mission</h2>
               <p className="mt-2 text-gray-600">
-                La solution Analyse des biais a été créé pour aider les individus et organisations à prendre conscience 
-                des biais cognitifs qui influencent leurs décisions et conversations. 
-                Notre technologie analyse en temps réel les échanges pour identifier les schémas de pensée biaisés.
-              </p>
+                   ISO 5055 Chat est un assistant intelligent conçu pour aider les développeurs à évaluer et améliorer la qualité de leur code source, en s’appuyant sur les recommandations de la norme ISO 5055. </p>
             </div>
           </div>
         </div>
